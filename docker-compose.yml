@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: smartscraper-db
+    environment:
+      MYSQL_DATABASE: smartscraper_db
+      MYSQL_USER: smartscraper_user
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-changeme}
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD:-changeme}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u${MYSQL_USER} -p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartscraper-network
+
+  puppeteer:
+    build:
+      context: ./node-puppeteer-service
+      dockerfile: Dockerfile
+    container_name: smartscraper-puppeteer
+    environment:
+      PORT: 3001
+      HEADLESS: new
+      NAV_TIMEOUT_MS: 30000
+      PAGE_SIZE: 20
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1));"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartscraper-network
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartscraper-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+      puppeteer:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      DATABASE_URL: jdbc:mysql://mysql:3306/smartscraper_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DATABASE_USERNAME: smartscraper_user
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-changeme}
+      SERVER_PORT: 8080
+      HIBERNATE_DDL_AUTO: update
+      PUPPETEER_API_BASE_URL: http://puppeteer:3001
+      PUPPETEER_RENDER_URL: http://puppeteer:3001/render?url=
+      PUPPETEER_API_TIMEOUT_MS: 30000
+    ports:
+      - "${SERVER_PORT:-7504}:8080"
+    volumes:
+      - app_logs:/app/logs
+      - app_exports:/app/exports
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - smartscraper-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    driver: local
+  app_logs:
+    driver: local
+  app_exports:
+    driver: local
+
+networks:
+  smartscraper-network:
+    driver: bridge

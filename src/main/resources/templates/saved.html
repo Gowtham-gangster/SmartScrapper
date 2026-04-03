@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Content - SmartScraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .content-card {
+            transition: transform 0.2s;
+        }
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .source-badge {
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="bi bi-lightning-charge-fill"></i> SmartScraper
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3">
+                    <i class="bi bi-person-circle"></i> <span th:text="${username}">User</span>
+                </span>
+                <a href="/dashboard" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="bi bi-bookmark-fill text-primary"></i> Saved Content</h2>
+                        <p class="text-muted">Your saved research content</p>
+                    </div>
+                    <div>
+                        <span class="badge bg-primary fs-6 me-2">
+                            <i class="bi bi-bookmark"></i> <span th:text="${savedCount}">0</span> Saved Items
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${infoMessage}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle"></i> <span th:text="${infoMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- No Saved Content Message -->
+        <div th:if="${savedContentList == null or savedContentList.isEmpty()}" class="alert alert-info">
+            <i class="bi bi-info-circle"></i> You haven't saved any content yet. Start researching and save interesting content!
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        <div class="row" th:if="${savedContentList != null and !savedContentList.isEmpty()}">
+            <div class="col-md-12">
+                <div class="card mb-3 bg-light">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <input type="checkbox" id="selectAll" class="form-check-input me-2">
+                                <label for="selectAll" class="form-check-label">Select All</label>
+                                <span class="ms-3 text-muted">
+                                    <span id="selectedCount">0</span> selected
+                                </span>
+                            </div>
+                            <div>
+                                <!-- Delete Selected Button -->
+                                <form id="bulkDeleteForm" th:action="@{/saved/delete-selected}" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm me-2" id="deleteSelectedBtn" disabled>
+                                        <i class="bi bi-trash"></i> Delete Selected
+                                    </button>
+                                </form>
+                                
+                                <!-- Delete All Button -->
+                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteAllModal">
+                                    <i class="bi bi-trash-fill"></i> Delete All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved Content Grid -->
+        <div class="row" th:if="${savedContentList != null and !savedContentList.isEmpty()}">
+            <div class="col-md-12" th:each="saved : ${savedContentList}">
+                <div class="card content-card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="flex-grow-1 d-flex align-items-start">
+                                <!-- Selection Checkbox -->
+                                <div class="form-check me-3">
+                                    <input class="form-check-input saved-checkbox" 
+                                           type="checkbox" 
+                                           th:id="'saved-' + ${saved.id}"
+                                           th:value="${saved.id}"
+                                           name="savedIds"
+                                           form="bulkDeleteForm">
+                                </div>
+                                
+                                <div>
+                                    <span class="badge bg-info source-badge mb-2">
+                                        <i class="bi bi-globe"></i> 
+                                        <span th:text="${saved.scrapedContent.scrapedSource.domainName}">Source</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <!-- Delete Button -->
+                                <form th:action="@{/saved/{id}/delete(id=${saved.id})}" 
+                                      method="post" 
+                                      style="display: inline;"
+                                      onsubmit="return confirm('Are you sure you want to delete this saved content?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Content displayed AS-IS with source link appended -->
+                        <div class="content-text mb-3">
+                            <!-- Display content exactly as scraped (no rewriting) -->
+                            <p class="card-text" style="white-space: pre-wrap;" th:utext="${#strings.escapeXml(saved.scrapedContent.contentText)}">Content text goes here...</p>
+                            
+                            <!-- Source link appended after paragraph -->
+                            <p class="mb-0">
+                                <small class="text-muted">
+                                    <i class="bi bi-link-45deg"></i> Source: 
+                                    <a th:href="${saved.scrapedContent.scrapedSource.sourceUrl}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       th:text="${saved.scrapedContent.scrapedSource.sourceUrl}">
+                                        Source URL
+                                    </a>
+                                </small>
+                            </p>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-bookmark-check"></i> Saved on: 
+                                <span th:text="${#temporals.format(saved.savedAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                            </small>
+                            <a th:href="${saved.scrapedContent.scrapedSource.sourceUrl}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-box-arrow-up-right"></i> View Full Source
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-4 mb-3" th:if="${totalPages != null and totalPages > 1}">
+            <div class="col-md-12">
+                <nav aria-label="Saved pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/saved?page=${currentPage - 1}&size=${pageSize}}">
+                                Previous
+                            </a>
+                        </li>
+
+                        <li class="page-item"
+                            th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${p == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/saved?page=${p}&size=${pageSize}}"
+                               th:text="${p + 1}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/saved?page=${currentPage + 1}&size=${pageSize}}">
+                                Next
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="row mt-4 mb-5">
+            <div class="col-md-12 text-center">
+                <a href="/dashboard" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete All Confirmation Modal -->
+    <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteAllModalLabel">
+                        <i class="bi bi-exclamation-triangle"></i> Confirm Delete All
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong>ALL</strong> saved content?</p>
+                    <p class="text-danger mb-0">
+                        <i class="bi bi-exclamation-circle"></i> This action cannot be undone!
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form th:action="@{/saved/delete-all}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash-fill"></i> Delete All
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Checkbox selection functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const savedCheckboxes = document.querySelectorAll('.saved-checkbox');
+            const selectedCountSpan = document.getElementById('selectedCount');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+            
+            // Only initialize if checkboxes exist
+            if (!selectAllCheckbox || savedCheckboxes.length === 0) {
+                return;
+            }
+            
+            // Update selected count and button state
+            function updateSelectionState() {
+                const checkedCount = document.querySelectorAll('.saved-checkbox:checked').length;
+                selectedCountSpan.textContent = checkedCount;
+                
+                // Enable/disable delete button
+                deleteSelectedBtn.disabled = checkedCount === 0;
+                
+                // Update select all checkbox state
+                if (checkedCount === 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (checkedCount === savedCheckboxes.length) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                } else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                }
+            }
+            
+            // Select all functionality
+            selectAllCheckbox.addEventListener('change', function() {
+                savedCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateSelectionState();
+            });
+            
+            // Individual checkbox change
+            savedCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectionState);
+            });
+            
+            // Bulk delete form submission confirmation
+            document.getElementById('bulkDeleteForm').addEventListener('submit', function(e) {
+                const checkedCount = document.querySelectorAll('.saved-checkbox:checked').length;
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one item to delete.');
+                    return false;
+                }
+                
+                if (!confirm('Are you sure you want to delete ' + checkedCount + ' selected item(s)?')) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Add selected IDs to form
+                const checkedBoxes = document.querySelectorAll('.saved-checkbox:checked');
+                this.querySelectorAll('input[name="savedIds"]').forEach(input => input.remove());
+                checkedBoxes.forEach(checkbox => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'savedIds';
+                    input.value = checkbox.value;
+                    this.appendChild(input);
+                });
+            });
+            
+            // Initialize state
+            updateSelectionState();
+        });
+    </script>
+</body>
+</html>

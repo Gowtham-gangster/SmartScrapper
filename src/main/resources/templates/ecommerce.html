@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Search - SmartScraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        .search-card {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .site-badge {
+            font-size: 0.85rem;
+            margin: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">SmartScraper</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3">
+                    <i class="bi bi-person-circle"></i> <span th:text="${username}">User</span>
+                </span>
+                <a href="/dashboard" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 mb-3">
+                <i class="bi bi-cart"></i> E-Commerce Product Search
+            </h1>
+            <p class="lead">Compare prices across multiple online stores</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Error Message -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Search Card -->
+        <div class="card search-card shadow-lg mb-4">
+            <div class="card-body p-4">
+                <h4 class="card-title mb-4">
+                    <i class="bi bi-search text-success"></i> Search Products
+                </h4>
+
+                <form th:action="@{/ecommerce/search}" method="post">
+                    <div class="mb-3">
+                        <label for="query" class="form-label">Enter product name or keywords</label>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               id="query" 
+                               name="query" 
+                               placeholder="e.g., laptop, headphones, camera..."
+                               required
+                               autofocus>
+                        <div class="form-text">
+                            Search for products and compare prices across multiple stores
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-search"></i> Search Products
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Supported Sites -->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-shop text-success"></i> Supported E-Commerce Sites
+                        </h5>
+                        <p class="text-muted mb-3">
+                            We search products from the following online stores:
+                        </p>
+                        <div>
+                            <span th:each="site : ${supportedSites}" 
+                                  class="badge bg-success site-badge"
+                                  th:text="${site}">
+                                Site
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <h4 class="mb-4">How It Works</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-search fs-1 text-success mb-3"></i>
+                                <h5>1. Enter Product</h5>
+                                <p class="text-muted">
+                                    Type the product name or keywords you're looking for
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-cart fs-1 text-success mb-3"></i>
+                                <h5>2. Search Multiple Sites</h5>
+                                <p class="text-muted">
+                                    We search across Amazon, eBay, Etsy, and more
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-sort-numeric-down fs-1 text-success mb-3"></i>
+                                <h5>3. Compare Prices</h5>
+                                <p class="text-muted">
+                                    Results sorted by price to help you find the best deal
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="mb-3">
+                            <i class="bi bi-star text-success"></i> Features
+                        </h5>
+                        <ul class="mb-0">
+                            <li>Search across multiple e-commerce platforms</li>
+                            <li>Automatic price extraction and comparison</li>
+                            <li>Results sorted by price (lowest to highest)</li>
+                            <li>Direct links to product pages</li>
+                            <li>Save search history for future reference</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="row mb-5">
+            <div class="col-md-12 text-center">
+                <a href="/dashboard" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

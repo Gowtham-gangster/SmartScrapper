@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search History - SmartScraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .history-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .history-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .module-badge {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+        .stat-card {
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateX(5px);
+        }
+        .stat-card.research { border-left-color: #0d6efd; }
+        .stat-card.news { border-left-color: #dc3545; }
+        .stat-card.ecommerce { border-left-color: #198754; }
+        .stat-card.search { border-left-color: #ffc107; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">SmartScraper</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3">
+                    <i class="bi bi-person-circle"></i> <span th:text="${username}">User</span>
+                </span>
+                <a href="/dashboard" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2><i class="bi bi-clock-history text-primary"></i> Search History</h2>
+                <p class="text-muted">View your past searches across all modules</p>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card research">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Research</h6>
+                                <h3 class="mb-0" th:text="${moduleStats.get('RESEARCH')}">0</h3>
+                            </div>
+                            <i class="bi bi-book fs-1 text-primary opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card news">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">News</h6>
+                                <h3 class="mb-0" th:text="${moduleStats.get('NEWS')}">0</h3>
+                            </div>
+                            <i class="bi bi-newspaper fs-1 text-danger opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card ecommerce">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">E-Commerce</h6>
+                                <h3 class="mb-0" th:text="${moduleStats.get('ECOMMERCE')}">0</h3>
+                            </div>
+                            <i class="bi bi-cart fs-1 text-success opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card search">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Total Searches</h6>
+                                <h3 class="mb-0" th:text="${moduleStats.get('TOTAL')}">0</h3>
+                            </div>
+                            <i class="bi bi-search fs-1 text-warning opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == 'ALL'} ? 'active' : ''" 
+                           href="/history">
+                            <i class="bi bi-list"></i> All
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == 'RESEARCH'} ? 'active' : ''" 
+                           href="/history?module=RESEARCH">
+                            <i class="bi bi-book"></i> Research
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == 'NEWS'} ? 'active' : ''" 
+                           href="/history?module=NEWS">
+                            <i class="bi bi-newspaper"></i> News
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == 'ECOMMERCE'} ? 'active' : ''" 
+                           href="/history?module=ECOMMERCE">
+                            <i class="bi bi-cart"></i> E-Commerce
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == 'SEARCH'} ? 'active' : ''" 
+                           href="/history?module=SEARCH">
+                            <i class="bi bi-search"></i> Normal Search
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- History List -->
+        <div class="row">
+            <div class="col-md-12">
+                <!-- No History Message -->
+                <div th:if="${historyList == null or historyList.isEmpty()}" class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No search history found.
+                    <span th:if="${activeFilter != 'ALL'}">
+                        Try selecting a different filter or <a href="/history">view all history</a>.
+                    </span>
+                </div>
+
+                <!-- History Cards -->
+                <div th:if="${historyList != null and !historyList.isEmpty()}">
+                    <div th:each="history : ${historyList}" class="card history-card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <!-- Module Badge -->
+                                    <span class="badge module-badge mb-2"
+                                          th:classappend="${history.moduleType.name() == 'RESEARCH'} ? 'bg-primary' : 
+                                                         (${history.moduleType.name() == 'NEWS'} ? 'bg-danger' : 
+                                                         (${history.moduleType.name() == 'ECOMMERCE'} ? 'bg-success' : 'bg-warning'))">
+                                        <i class="bi"
+                                           th:classappend="${history.moduleType.name() == 'RESEARCH'} ? 'bi-book' : 
+                                                          (${history.moduleType.name() == 'NEWS'} ? 'bi-newspaper' : 
+                                                          (${history.moduleType.name() == 'ECOMMERCE'} ? 'bi-cart' : 'bi-search'))"></i>
+                                        <span th:text="${history.moduleType.displayName}">Module</span>
+                                    </span>
+
+                                    <!-- Query Text -->
+                                    <h5 class="card-title mb-2" th:text="${history.queryText}">Search Query</h5>
+
+                                    <!-- Date -->
+                                    <p class="text-muted mb-0">
+                                        <i class="bi bi-calendar"></i>
+                                        <span th:text="${#temporals.format(history.searchedAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                                    </p>
+                                </div>
+
+                                <!-- View Results Button -->
+                                <div>
+                                    <!-- Delete History -->
+                                    <form th:action="@{/history/{id}/delete(id=${history.id}, module=${activeFilter != 'ALL' ? activeFilter : null}, page=${currentPage}, size=${pageSize})}"
+                                          method="post"
+                                          style="display: inline;"
+                                          onsubmit="return confirm('Delete this search history item?');">
+                                        <input type="hidden" name="confirm" value="yes"/>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm mb-2">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
+
+                                    <a th:if="${history.moduleType.name() == 'RESEARCH'}"
+                                       th:href="@{/research/results(searchId=${history.id})}"
+                                       class="btn btn-primary btn-sm">
+                                        <i class="bi bi-eye"></i> View Results
+                                    </a>
+                                    <button th:unless="${history.moduleType.name() == 'RESEARCH'}"
+                                            class="btn btn-secondary btn-sm" disabled>
+                                        <i class="bi bi-hourglass-split"></i> Coming Soon
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-4 mb-3" th:if="${totalPages != null and totalPages > 1}">
+            <div class="col-md-12">
+                <nav aria-label="History pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/history(module=${activeFilter != 'ALL' ? activeFilter : null}, page=${currentPage - 1}, size=${pageSize})}">
+                                Previous
+                            </a>
+                        </li>
+
+                        <li class="page-item"
+                            th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${p == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/history(module=${activeFilter != 'ALL' ? activeFilter : null}, page=${p}, size=${pageSize})}"
+                               th:text="${p + 1}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/history(module=${activeFilter != 'ALL' ? activeFilter : null}, page=${currentPage + 1}, size=${pageSize})}">
+                                Next
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="row mt-4 mb-5">
+            <div class="col-md-12">
+                <a href="/dashboard" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

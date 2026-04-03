@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Results - SmartScraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .product-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #198754;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .source-badge {
+            font-size: 0.85rem;
+        }
+        .price-tag {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #198754;
+        }
+        .best-price {
+            border-left-color: #ffc107;
+            background-color: #fffbf0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">SmartScraper</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3">
+                    <i class="bi bi-person-circle"></i> <span th:text="${username}">User</span>
+                </span>
+                <a href="/ecommerce" class="btn btn-outline-light btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i> New Search
+                </a>
+                <a href="/dashboard" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Results Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2><i class="bi bi-cart text-success"></i> Product Results</h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="text-muted mb-1">Query: <span class="text-dark" th:text="${query}">Query</span></h5>
+                        <small class="text-muted">
+                            Searched on: <span th:text="${#temporals.format(searchHistory.searchedAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                        </small>
+                    </div>
+                    <div>
+                        <span class="badge bg-success fs-6">
+                            <i class="bi bi-cart"></i> <span th:text="${resultCount}">0</span> Products
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sorting Info -->
+        <div class="row mb-3" th:if="${products != null and !products.isEmpty()}">
+            <div class="col-md-12">
+                <div class="alert alert-success">
+                    <i class="bi bi-sort-numeric-down"></i>
+                    <strong>Sorted by Price:</strong> Results are displayed from lowest to highest price to help you find the best deal.
+                </div>
+            </div>
+        </div>
+
+        <!-- No Results Message -->
+        <div th:if="${products == null or products.isEmpty()}" class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No products found for your query. Try different keywords or check back later.
+        </div>
+
+        <!-- Product Cards -->
+        <div class="row" th:if="${products != null and !products.isEmpty()}">
+            <div class="col-md-12">
+                <div th:each="product, iterStat : ${products}" 
+                     class="card product-card mb-4 shadow-sm"
+                     th:classappend="${iterStat.index == 0} ? 'best-price' : ''">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <!-- Best Price Badge -->
+                                <div th:if="${iterStat.index == 0}" class="mb-2">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-star-fill"></i> Best Price
+                                    </span>
+                                </div>
+
+                                <!-- Source Badge -->
+                                <div class="mb-2">
+                                    <span class="badge source-badge"
+                                          th:classappend="${product.source == 'Amazon'} ? 'bg-warning text-dark' : 
+                                                         (${product.source == 'eBay'} ? 'bg-primary' : 'bg-danger')">
+                                        <i class="bi bi-shop"></i> <span th:text="${product.source}">Source</span>
+                                    </span>
+                                </div>
+
+                                <!-- Product Name -->
+                                <h4 class="card-title mb-3">
+                                    <a th:href="${product.url}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="text-decoration-none text-dark"
+                                       th:text="${product.name}">
+                                        Product Name
+                                    </a>
+                                </h4>
+
+                                <!-- View Product Link -->
+                                <div class="mt-3">
+                                    <a th:href="${product.url}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-box-arrow-up-right"></i> View on <span th:text="${product.source}">Site</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 text-end">
+                                <!-- Price -->
+                                <div class="price-tag mb-2" th:text="${product.formattedPrice}">
+                                    $99.99
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-link-45deg"></i>
+                                    <a th:href="${product.url}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="text-muted text-decoration-none">
+                                        Product Link
+                                    </a>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="row mb-4" th:if="${products != null and !products.isEmpty()}">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Note:</strong> Prices are scraped in real-time and may change. 
+                    Click "View on [Site]" to see current pricing and availability on the retailer's website.
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Search Button -->
+        <div class="row mt-4 mb-5">
+            <div class="col-md-12 text-center">
+                <a href="/ecommerce" class="btn btn-success">
+                    <i class="bi bi-search"></i> Start New Search
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

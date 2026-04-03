@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Results - SmartScraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .content-card {
+            transition: transform 0.2s;
+        }
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .content-text {
+            max-height: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .source-badge {
+            font-size: 0.85rem;
+        }
+        .card-title {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .list-unstyled li {
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">SmartScraper</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3">
+                    <i class="bi bi-person-circle"></i> <span th:text="${username}">User</span>
+                </span>
+                <a href="/research" class="btn btn-outline-light btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i> New Search
+                </a>
+                <a href="/dashboard" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Results Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2><i class="bi bi-file-text text-primary"></i> Research Results</h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="text-muted mb-1">Topic: <span class="text-dark" th:text="${topicName}">Topic Name</span></h5>
+                        <small class="text-muted">
+                            Searched on: <span th:text="${#temporals.format(searchHistory.searchedAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                        </small>
+                    </div>
+                    <div>
+                        <span class="badge bg-primary fs-6">
+                            <i class="bi bi-file-earmark-text"></i> <span th:text="${resultCount}">0</span> Results
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- No Results Message -->
+        <div th:if="${results == null or results.isEmpty()}" class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No results found for this research topic.
+        </div>
+
+        <!-- Results Grid -->
+        <div class="row" th:if="${results != null and !results.isEmpty()}">
+            <div class="col-md-12">
+                <!-- Bulk Actions Bar -->
+                <div class="card mb-3 bg-light">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <input type="checkbox" id="selectAll" class="form-check-input me-2">
+                                <label for="selectAll" class="form-check-label">Select All</label>
+                                <span class="ms-3 text-muted">
+                                    <span id="selectedCount">0</span> selected
+                                </span>
+                            </div>
+                            <div>
+                                <!-- Save Selected Button -->
+                                <form id="bulkSaveForm" th:action="@{/content/save-selected}" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-primary btn-sm me-2" id="saveSelectedBtn" disabled>
+                                        <i class="bi bi-bookmark-plus"></i> Save Selected
+                                    </button>
+                                </form>
+                                
+                                <!-- Export Selected as PDF Button -->
+                                <form id="exportPdfForm" th:action="@{/export/pdf}" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm me-2" id="exportPdfBtn" disabled>
+                                        <i class="bi bi-file-pdf"></i> Export Selected as PDF
+                                    </button>
+                                </form>
+                                
+                                <!-- Export Selected as CSV Button -->
+                                <form id="exportCsvForm" th:action="@{/export/csv}" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-success btn-sm" id="exportCsvBtn" disabled>
+                                        <i class="bi bi-file-earmark-spreadsheet"></i> Export Selected as CSV
+                                    </button>
+                                </form>
+                                
+                                <!-- Export Selected (both CSV + PDF via /export/selected) -->
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm"
+                                        id="exportSelectedBtn"
+                                        disabled>
+                                    <i class="bi bi-download"></i> Export Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Cards -->
+                <div th:each="content : ${results}">
+                    <div class="card content-card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="flex-grow-1 d-flex align-items-start">
+                                    <!-- Selection Checkbox -->
+                                    <div class="form-check me-3">
+                                        <input class="form-check-input content-checkbox" 
+                                               type="checkbox" 
+                                               th:id="'content-' + ${content.id}"
+                                               th:value="${content.id}"
+                                               name="contentIds"
+                                               form="bulkSaveForm">
+                                    </div>
+                                    
+                                    <div class="flex-grow-1">
+                                        <!-- Title -->
+                                        <h5 class="card-title mb-2" th:text="${content.title ?: 'Research Result'}">Title</h5>
+                                        
+                                        <!-- Platform Badge -->
+                                        <div class="mb-2">
+                                            <span class="badge bg-info source-badge" th:if="${content.platform}">
+                                                <i class="bi bi-globe"></i> 
+                                                <span th:text="${content.platform}">Platform</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <!-- Individual Save/Unsave Button -->
+                                    <form th:if="${!savedStatusMap.get(content.id)}" 
+                                          th:action="@{/content/{id}/save(id=${content.id})}" 
+                                          method="post" 
+                                          style="display: inline;">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-bookmark"></i> Save
+                                        </button>
+                                    </form>
+                                    <form th:if="${savedStatusMap.get(content.id)}" 
+                                          th:action="@{/content/{id}/unsave(id=${content.id})}" 
+                                          method="post" 
+                                          style="display: inline;">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="bi bi-bookmark-fill"></i> Saved
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Introduction Section -->
+                            <div class="mb-3" th:if="${content.introduction}">
+                                <h6 class="text-muted mb-2"><i class="bi bi-info-circle"></i> Introduction / Definition</h6>
+                                <p class="card-text" style="line-height: 1.6; text-align: justify;" 
+                                   th:text="${content.introduction}">
+                                    Introduction text goes here...
+                                </p>
+                            </div>
+
+                            <!-- Key Points Section -->
+                            <div class="mb-3" th:if="${content.keyPoints != null and !content.keyPoints.isEmpty()}">
+                                <h6 class="text-muted mb-2"><i class="bi bi-list-ul"></i> Key Points / Characteristics</h6>
+                                <ul class="list-unstyled ms-3">
+                                    <li th:each="point : ${content.keyPoints}" class="mb-2">
+                                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                        <span th:text="${point}">Key point</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Source Link -->
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-link-45deg"></i> Source: 
+                                    <a th:href="${content.scrapedSource?.sourceUrl ?: content.sourceUrl}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       th:text="${content.scrapedSource?.sourceUrl ?: content.sourceUrl}">
+                                        Source URL
+                                    </a>
+                                </small>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> 
+                                    <span th:text="${#temporals.format(content.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                                </small>
+                                <a th:href="${content.scrapedSource?.sourceUrl ?: content.sourceUrl}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-box-arrow-up-right"></i> View Full Source
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Research Button -->
+        <div class="row mt-4 mb-5">
+            <div class="col-md-12 text-center">
+                <a href="/research" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Start New Research
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Checkbox selection functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const contentCheckboxes = document.querySelectorAll('.content-checkbox');
+            const selectedCountSpan = document.getElementById('selectedCount');
+            const saveSelectedBtn = document.getElementById('saveSelectedBtn');
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const exportSelectedBtn = document.getElementById('exportSelectedBtn');
+            
+            // Update selected count and button state
+            function updateSelectionState() {
+                const checkedCount = document.querySelectorAll('.content-checkbox:checked').length;
+                selectedCountSpan.textContent = checkedCount;
+                
+                // Enable/disable buttons
+                const hasSelection = checkedCount > 0;
+                saveSelectedBtn.disabled = !hasSelection;
+                exportPdfBtn.disabled = !hasSelection;
+                exportCsvBtn.disabled = !hasSelection;
+                exportSelectedBtn.disabled = !hasSelection;
+                
+                // Update select all checkbox state
+                if (checkedCount === 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (checkedCount === contentCheckboxes.length) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                } else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                }
+                
+                // Update export forms with selected IDs
+                updateExportForms();
+            }
+            
+            // Update export forms with selected content IDs
+            function updateExportForms() {
+                const checkedBoxes = document.querySelectorAll('.content-checkbox:checked');
+                const pdfForm = document.getElementById('exportPdfForm');
+                const csvForm = document.getElementById('exportCsvForm');
+                
+                // Clear existing hidden inputs
+                pdfForm.querySelectorAll('input[name="contentIds"]').forEach(input => input.remove());
+                csvForm.querySelectorAll('input[name="contentIds"]').forEach(input => input.remove());
+                
+                // Add hidden inputs for each selected ID
+                checkedBoxes.forEach(checkbox => {
+                    const pdfInput = document.createElement('input');
+                    pdfInput.type = 'hidden';
+                    pdfInput.name = 'contentIds';
+                    pdfInput.value = checkbox.value;
+                    pdfForm.appendChild(pdfInput);
+                    
+                    const csvInput = document.createElement('input');
+                    csvInput.type = 'hidden';
+                    csvInput.name = 'contentIds';
+                    csvInput.value = checkbox.value;
+                    csvForm.appendChild(csvInput);
+                });
+            }
+            
+            // Select all functionality
+            selectAllCheckbox.addEventListener('change', function() {
+                contentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateSelectionState();
+            });
+            
+            // Individual checkbox change
+            contentCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectionState);
+            });
+
+            // Export Selected (POST selected IDs -> /export/selected)
+            exportSelectedBtn.addEventListener('click', async function() {
+                const checkedBoxes = document.querySelectorAll('.content-checkbox:checked');
+                const checkedCount = checkedBoxes.length;
+                if (checkedCount === 0) {
+                    alert('Please select at least one item to export.');
+                    return;
+                }
+
+                try {
+                    exportSelectedBtn.disabled = true;
+                    const formData = new FormData();
+                    checkedBoxes.forEach(checkbox => {
+                        formData.append('selectedIds', checkbox.value);
+                    });
+
+                    const res = await fetch('/export/selected', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!res.ok) {
+                        const text = await res.text();
+                        alert('Export failed: ' + text);
+                        return;
+                    }
+
+                    // Redirect to export history (downloads can be done there)
+                    window.location.href = '/export/history';
+                } catch (e) {
+                    console.error(e);
+                    alert('Export failed. Please try again.');
+                } finally {
+                    updateSelectionState();
+                }
+            });
+            
+            // Bulk save form submission confirmation
+            document.getElementById('bulkSaveForm').addEventListener('submit', function(e) {
+                const checkedCount = document.querySelectorAll('.content-checkbox:checked').length;
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one item to save.');
+                    return false;
+                }
+                
+                // Add selected IDs to form
+                const checkedBoxes = document.querySelectorAll('.content-checkbox:checked');
+                this.querySelectorAll('input[name="contentIds"]').forEach(input => input.remove());
+                checkedBoxes.forEach(checkbox => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'contentIds';
+                    input.value = checkbox.value;
+                    this.appendChild(input);
+                });
+            });
+            
+            // Initialize state
+            updateSelectionState();
+        });
+    </script>
+</body>
+</html>

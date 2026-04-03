@@ -1,0 +1,33 @@
+# Production profile configuration
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  thymeleaf:
+    cache: true
+
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+
+logging:
+  level:
+    root: WARN
+    com.smartscraper: INFO
+  file:
+    name: /var/log/smartscraper/application.log
+
+app:
+  scraping:
+    timeout-ms: 10000

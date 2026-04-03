@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - SmartScraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .result-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #ffc107;
+        }
+        .result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .result-title {
+            color: #1a0dab;
+            font-size: 1.25rem;
+            text-decoration: none;
+        }
+        .result-title:hover {
+            text-decoration: underline;
+        }
+        .result-url {
+            color: #006621;
+            font-size: 0.9rem;
+        }
+        .result-snippet {
+            color: #545454;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+        <div class="container-fluid">
+            <a class="navbar-brand text-dark" href="/dashboard">
+                <strong>SmartScraper</strong>
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="text-dark me-3">
+                    <i class="bi bi-person-circle"></i> <span th:text="${username}">User</span>
+                </span>
+                <a href="/search" class="btn btn-outline-dark btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i> New Search
+                </a>
+                <a href="/dashboard" class="btn btn-outline-dark btn-sm">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Results Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2><i class="bi bi-search text-warning"></i> Search Results</h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="text-muted mb-1">Query: <span class="text-dark" th:text="${query}">Query</span></h5>
+                        <small class="text-muted">
+                            Searched on: <span th:text="${#temporals.format(searchHistory.searchedAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                        </small>
+                    </div>
+                    <div>
+                        <span class="badge bg-warning text-dark fs-6">
+                            <i class="bi bi-list-ul"></i> <span th:text="${resultCount}">0</span> Results
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Results Message -->
+        <div th:if="${searchResults == null or searchResults.isEmpty()}" class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No results found for your query. Try different keywords.
+        </div>
+
+        <!-- Search Results -->
+        <div class="row" th:if="${searchResults != null and !searchResults.isEmpty()}">
+            <div class="col-md-12">
+                <div th:each="result : ${searchResults}" class="card result-card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <!-- Title -->
+                        <h5 class="mb-2">
+                            <a th:href="${result.url}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="result-title"
+                               th:text="${result.title}">
+                                Result Title
+                            </a>
+                        </h5>
+
+                        <!-- Display URL -->
+                        <div class="result-url mb-2" th:if="${result.displayUrl != null and !result.displayUrl.isEmpty()}">
+                            <i class="bi bi-link-45deg"></i>
+                            <span th:text="${result.displayUrl}">example.com</span>
+                        </div>
+
+                        <!-- Snippet -->
+                        <p class="result-snippet mb-2" th:text="${result.snippet}">
+                            This is a snippet of the search result showing a preview of the content...
+                        </p>
+
+                        <!-- Visit Link -->
+                        <div>
+                            <a th:href="${result.url}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="btn btn-outline-warning btn-sm text-dark">
+                                <i class="bi bi-box-arrow-up-right"></i> Visit Page
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="row mb-4" th:if="${searchResults != null and !searchResults.isEmpty()}">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Note:</strong> Results are extracted from web search with minimal filtering. 
+                    Click "Visit Page" to view the full content on the source website.
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Search Button -->
+        <div class="row mt-4 mb-5">
+            <div class="col-md-12 text-center">
+                <a href="/search" class="btn btn-warning text-dark">
+                    <i class="bi bi-search"></i> <strong>Start New Search</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

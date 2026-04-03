@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Scraper - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+        }
+        .feature-card {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .research-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .news-icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .ecommerce-icon {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .search-icon {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        .extractor-icon {
+            background: linear-gradient(135deg, #ffb199 0%, #ff6a88 100%);
+            color: white;
+        }
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .feature-description {
+            color: #6c757d;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .profile-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .dropdown-menu {
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+            min-width: 220px;
+        }
+        .dropdown-item {
+            padding: 0.75rem 1.25rem;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            padding-left: 1.5rem;
+        }
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        .dropdown-divider {
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="bi bi-lightning-charge-fill"></i> Smart Scraper
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item dropdown profile-dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown" 
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="profile-avatar me-2">
+                                <span sec:authentication="name" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</span>
+                            </div>
+                            <span class="d-none d-md-inline" sec:authentication="name">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <li>
+                                <a class="dropdown-item" href="/profile/edit">
+                                    <i class="bi bi-person-fill"></i> Edit Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/history">
+                                    <i class="bi bi-clock-history"></i> History
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/saved">
+                                    <i class="bi bi-bookmark-fill"></i> Saved Content
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="d-inline w-100">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-box-arrow-right"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="display-4 mb-2">Welcome Back!</h1>
+            <p class="lead mb-0">Choose a scraping mode to get started</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="row g-4">
+            <!-- Research Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card" onclick="location.href='/research'">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon research-icon mx-auto">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <h3 class="feature-title">Research</h3>
+                        <p class="feature-description">
+                            Deep research with topic discovery and relevance scoring.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-Time News Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card" onclick="location.href='/news'">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon news-icon mx-auto">
+                            <i class="bi bi-newspaper"></i>
+                        </div>
+                        <h3 class="feature-title">News</h3>
+                        <p class="feature-description">
+                            Search real-time news from multiple RSS feeds and trusted sources.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- E-Commerce Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card" onclick="location.href='/ecommerce'">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon ecommerce-icon mx-auto">
+                            <i class="bi bi-cart"></i>
+                        </div>
+                        <h3 class="feature-title">Ecommerce</h3>
+                        <p class="feature-description">
+                            Compare product prices across Amazon, eBay, and Etsy.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Normal Search Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card" onclick="location.href='/search'">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon search-icon mx-auto">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <h3 class="feature-title">Normal Search</h3>
+                        <p class="feature-description">
+                            Keyword-based web search with snippets, links, and extracted content.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Extractor Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card" onclick="location.href='/search'">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon extractor-icon mx-auto">
+                            <i class="bi bi-scissors"></i>
+                        </div>
+                        <h3 class="feature-title">Content Extractor</h3>
+                        <p class="feature-description">
+                            Extract relevant content blocks from web pages and save what matters.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Overview -->
+        <div class="row mt-5 g-4">
+            <div class="col-12">
+                <h4 class="mb-1">Dashboard Overview</h4>
+                <p class="text-muted mb-4">Your activity at a glance</p>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-clock-history text-primary" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-0" th:text="${totalSearches}">0</h5>
+                                <p class="text-muted mb-0">Total searches</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-bookmark-fill text-success" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-0" th:text="${totalSavedContent}">0</h5>
+                                <p class="text-muted mb-0">Total saved content</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-printer text-info" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-0" th:text="${totalExports}">0</h5>
+                                <p class="text-muted mb-0">Total exports</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Activity -->
+        <div class="row mt-4 g-4">
+            <!-- Latest Searches -->
+            <div class="col-lg-6">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-search text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h5 class="mb-0">Latest searches</h5>
+                                <p class="text-muted mb-0">Most recent queries you ran</p>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50%;">Query</th>
+                                        <th style="width: 20%;">Module</th>
+                                        <th style="width: 30%;">Searched at</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${latestSearches == null or #lists.isEmpty(latestSearches)}">
+                                        <td colspan="3" class="text-muted">No searches yet.</td>
+                                    </tr>
+                                    <tr th:each="s : ${latestSearches}">
+                                        <td th:text="${s.queryText != null ? #strings.abbreviate(s.queryText, 60) : 'N/A'}">Query</td>
+                                        <td>
+                                            <span class="badge bg-primary" th:text="${s.moduleType}">Module</span>
+                                        </td>
+                                        <td th:text="${s.searchedAt != null ? #temporals.format(s.searchedAt, 'MMM dd, yyyy HH:mm') : 'N/A'}">Date</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Latest Scraped Data -->
+            <div class="col-lg-6">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-layers text-success" style="font-size: 2rem;"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h5 class="mb-0">Latest scraped data</h5>
+                                <p class="text-muted mb-0">Most recent extracted content</p>
+                            </div>
+                        </div>
+
+                        <div class="list-group list-group-flush">
+                            <div th:if="${latestScrapedData == null or #lists.isEmpty(latestScrapedData)}"
+                                 class="text-muted p-3">
+                                No scraped content yet.
+                            </div>
+
+                            <div th:each="c : ${latestScrapedData}" class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-success"
+                                          th:text="${c.searchHistory != null ? c.searchHistory.moduleType : 'Unknown'}">Module</span>
+                                    <small class="text-muted"
+                                           th:text="${c.createdAt != null ? #temporals.format(c.createdAt, 'MMM dd, yyyy HH:mm') : ''}">Date</small>
+                                </div>
+                                
+                                <!-- Title/Query -->
+                                <div class="fw-semibold mb-2"
+                                     th:text="${c.searchHistory != null && c.searchHistory.queryText != null ? #strings.abbreviate(c.searchHistory.queryText, 60) : 'N/A'}">Query</div>
+                                
+                                <!-- Definition/Introduction -->
+                                <div th:if="${c.contentText != null and c.contentText.contains('Introduction:')}" class="mb-2">
+                                    <small class="text-muted fw-semibold">Definition:</small>
+                                    <p class="text-muted mb-0 small" style="line-height: 1.5;"
+                                       th:text="${#strings.abbreviate(#strings.substringAfter(#strings.substringBefore(c.contentText + '\n\nKey Points:', 'Key Points:'), 'Introduction:'), 150)}">
+                                        Introduction text
+                                    </p>
+                                </div>
+                                
+                                <!-- Characteristics/Key Points -->
+                                <div th:if="${c.contentText != null and c.contentText.contains('Key Points:')}" class="mb-0">
+                                    <small class="text-muted fw-semibold">Characteristics:</small>
+                                    <p class="text-muted mb-0 small" style="line-height: 1.5;"
+                                       th:text="${#strings.abbreviate(#strings.substringAfter(#strings.substringBefore(c.contentText + '\n\nSource:', 'Source:'), 'Key Points:'), 150)}">
+                                        Key points text
+                                    </p>
+                                </div>
+                                
+                                <!-- Fallback for content without structure -->
+                                <div th:if="${c.contentText != null and !c.contentText.contains('Introduction:')}" class="text-muted small"
+                                     th:text="${#strings.abbreviate(c.contentText, 180)}">Preview</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

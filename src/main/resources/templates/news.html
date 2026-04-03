@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Search - SmartScraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        .search-card {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .feed-badge {
+            font-size: 0.85rem;
+            margin: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">SmartScraper</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3">
+                    <i class="bi bi-person-circle"></i> <span th:text="${username}">User</span>
+                </span>
+                <a href="/dashboard" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 mb-3">
+                <i class="bi bi-newspaper"></i> Real-Time News Search
+            </h1>
+            <p class="lead">Search across multiple news sources using RSS feeds</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Error Message -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Search Card -->
+        <div class="card search-card shadow-lg mb-4">
+            <div class="card-body p-4">
+                <h4 class="card-title mb-4">
+                    <i class="bi bi-search text-danger"></i> Search News
+                </h4>
+
+                <form th:action="@{/news/search}" method="post">
+                    <div class="mb-3">
+                        <label for="query" class="form-label">Enter your search query</label>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               id="query" 
+                               name="query" 
+                               placeholder="e.g., artificial intelligence, climate change, technology..."
+                               required
+                               autofocus>
+                        <div class="form-text">
+                            Search for news articles across multiple sources
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-search"></i> Search News
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Available Sources -->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-rss text-danger"></i> Available News Sources
+                        </h5>
+                        <p class="text-muted mb-3">
+                            We fetch news from the following RSS feeds:
+                        </p>
+                        <div>
+                            <span th:each="feed : ${availableFeeds}" 
+                                  class="badge bg-danger feed-badge"
+                                  th:text="${feed.key}">
+                                Source
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <h4 class="mb-4">How It Works</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-search fs-1 text-danger mb-3"></i>
+                                <h5>1. Enter Query</h5>
+                                <p class="text-muted">
+                                    Type keywords related to the news you want to find
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-rss fs-1 text-danger mb-3"></i>
+                                <h5>2. Fetch from RSS</h5>
+                                <p class="text-muted">
+                                    We search across multiple RSS feeds from trusted sources
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-newspaper fs-1 text-danger mb-3"></i>
+                                <h5>3. View Results</h5>
+                                <p class="text-muted">
+                                    Get headlines, summaries, and links to full articles
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="row mb-5">
+            <div class="col-md-12 text-center">
+                <a href="/dashboard" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

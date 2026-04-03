@@ -1,0 +1,21 @@
+# Development profile configuration
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    com.smartscraper: DEBUG
+    org.springframework.web: DEBUG
+
+app:
+  scraping:
+    timeout-ms: 15000

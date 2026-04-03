@@ -1,0 +1,17 @@
+{
+  "name": "smartscraper-puppeteer-microservice",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Puppeteer-based microservice for scraping news, products, and research pages.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "puppeteer": "^23.7.1"
+  }
+}
+

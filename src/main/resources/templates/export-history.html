@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export History - SmartScraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .history-table td, .history-table th { vertical-align: middle; }
+        .keyword-cell { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="bi bi-lightning-charge-fill"></i> SmartScraper
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">
+                <i class="bi bi-person-circle"></i> <span th:text="${username}">User</span>
+            </span>
+            <a href="/dashboard" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-house"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h2><i class="bi bi-download"></i> Export History</h2>
+            <p class="text-muted mb-0">Your exported files from selected scraped items</p>
+        </div>
+    </div>
+
+    <div th:if="${exportHistoryList == null or exportHistoryList.isEmpty()}" class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No exports found.
+    </div>
+
+    <div th:if="${exportHistoryList != null and !exportHistoryList.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle history-table">
+                <thead>
+                <tr>
+                    <th>File name</th>
+                    <th>Export type</th>
+                    <th>Module</th>
+                    <th>Keyword</th>
+                    <th>Exported at</th>
+                    <th>Download</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${exportHistoryList}">
+                    <td th:text="${h.fileName}">file.csv</td>
+                    <td th:text="${h.exportType}">CSV</td>
+                    <td th:text="${h.module}">Research</td>
+                    <td class="keyword-cell" th:text="${h.keyword}">keyword</td>
+                    <td th:text="${#temporals.format(h.exportedAt, 'MMM dd, yyyy HH:mm')}">date</td>
+                    <td>
+                        <a th:href="@{/export/selected/download/{id}(id=${h.id})}"
+                           class="btn btn-primary btn-sm"
+                           onclick="return confirm('Download this export file?');">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Export history pagination">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/export/history?page=${currentPage - 1}&size=${pageSize}}">
+                        Previous
+                    </a>
+                </li>
+
+                <li class="page-item"
+                    th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${p == currentPage} ? 'active'">
+                    <a class="page-link"
+                       th:href="@{/export/history?page=${p}&size=${pageSize}}"
+                       th:text="${p + 1}">1</a>
+                </li>
+
+                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/export/history?page=${currentPage + 1}&size=${pageSize}}">
+                        Next
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="row mt-4 mb-5">
+        <div class="col-md-12">
+            <a href="/dashboard" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
+
